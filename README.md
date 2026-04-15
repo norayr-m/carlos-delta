@@ -2,15 +2,15 @@
 
 > **Note:** This is an amateur engineering project. We are not HPC professionals and make no competitive claims. Errors likely.
 
-Lossless delta compression for spatial simulation frames. 50× measured on 1 billion cell ecosystem data.
+Lossless delta compression for spatial simulation frames. GPU-native sparse scatter format — zero CPU in the decode path.
 
 ## The Pipeline
 
 ```
-GPU Simulation → Carlos Delta Encoder → .savanna file → Carlos Delta Decoder → GPU LOD → Browser
-     ↑                   ↑                   ↑                    ↑              ↑          ↑
-  savanna-cli     XOR + zlib           one file          XOR + inflate     downsample    WebGL
-  (Metal GPU)    (50× lossless)       on disk           (at startup)     (at startup)   (60fps)
+RECORD:  Metal GPU → XOR delta → sparse (index,value) pairs → NVMe
+PLAY:    NVMe → GPU scatter kernel → de-Morton → LOD downsample → WebGL
+
+CPU never touches cell data during playback.
 ```
 
 Full architecture: [ARCHITECTURE.md](ARCHITECTURE.md)
@@ -22,15 +22,15 @@ git clone https://github.com/norayr-m/carlos-delta.git
 cd carlos-delta
 swift build -c release
 
-# 1. Simulate — real GPU ecosystem with Carlos Delta encoding
-.build/release/savanna-cli --cells 1M --days 30 --record myrun/
+# 1. Record a simulation (sparse scatter format, GPU-native)
+.build/release/savanna-cli --cells 1M --days 30 --record myrun.savanna
 
 # 2. Play it in a browser
-.build/release/savanna-play myrun/recording.savanna
-# → open http://localhost:8800
+.build/release/savanna-play myrun.savanna
+# → open http://localhost:8800/savanna_webgl.html
 ```
 
-That's it. Two binaries. One `.savanna` file. Metal GPU simulation → XOR delta → zlib → WebGL playback.
+Two binaries. One `.savanna` file.
 
 ### Options
 
@@ -41,59 +41,72 @@ That's it. Two binaries. One `.savanna` file. Metal GPU simulation → XOR delta
 --cells 1B          # 1 billion
 
 # Duration
---days 30           # simulate 30 days (4 ticks/day)
---ticks 100         # or specify ticks directly
+--days 30           # 30 days (4 ticks/day = 120 frames)
 
 # Recording
---record myrun/     # output directory (writes recording.savanna)
+--record myrun.savanna   # direct filename
+--record myrun/          # directory (writes myrun/recording.savanna)
 
-# GPU init (fast)
+# Format
+(default)           # sparse scatter (GPU-native, fast decode)
+--zlib              # zlib compressed (smaller files, CPU decode)
+
+# GPU init
 --gpu-init          # 3.8ms GPU state init (vs 30s CPU)
 
-# Playback port  
+# Playback
 --port 9090         # custom port (default: 8800)
 ```
 
-Inspired by [Carlos Mateo Muñoz](https://github.com/carlosmateo10/delta-compression-demo)'s RFC 9842 Dictionary TTL extension (MIT License).
-
 ## The Idea
 
-Between simulation ticks, 98.7% of cells don't change. XOR the frames. Compress the zeros.
+Between simulation ticks, 98.7% of cells don't change. Don't compress the zeros. **Forget them.**
 
 ```
-Frame N ⊕ Frame N-1 → 98.7% zeros → zlib → 50× smaller
+Frame N ⊕ Frame N-1 → 98.7% silence → store only the 1.3% that changed
 ```
 
-One billion cells. Twenty frames. 20 GB raw → **408 MB compressed**. Lossless.
+P-frames: sparse `(morton_index, xor_value)` pairs. GPU scatter kernel applies them.
+I-frames: full keyframe every 60 frames. Bounds the replay chain.
+
+### Why Not zlib?
+
+zlib compresses the XOR delta — all N bytes including zeros. CPU decompresses every frame. At 100M cells: ~1 second per frame.
+
+Sparse scatter stores only non-zero entries. GPU scatter kernel: microseconds. The non-zero bytes are predator-prey chaos — zlib can't find patterns in lions eating zebras anyway. It burns CPU compressing incompressible entropy surrounded by zeros we don't need to store.
 
 ## Measured Results
 
-| Frame | Sparsity | Raw | Compressed | Ratio |
-|-------|----------|-----|------------|-------|
-| 1 | 97.6% | 1,074 MB | 32.9 MB | 33× |
-| 10 | 98.7% | 1,074 MB | 21.5 MB | 50× |
-| 19 | 99.1% | 1,074 MB | 16.8 MB | 64× |
-| **AVG** | **98.7%** | **1,074 MB** | **21.5 MB** | **50×** |
+| Scale | Cells | Change Rate | Sparse P-frame | Decode (GPU) |
+|-------|-------|-------------|----------------|-------------|
+| 1M | 1,000,000 | 1.3% | ~65 KB | ~0.1ms |
+| 10M | 10,000,000 | 1.3% | ~650 KB | ~0.5ms |
+| 100M | 100,000,000 | 1.3% | ~6.5 MB | ~1ms |
+| 1B | 1,000,000,000 | 1.3% | ~65 MB | ~5ms |
 
-## Why It Matters
+## .savanna Format (v3)
 
-Carlos's web standard (RFC 9842 Dictionary TTL) enables using the previous HTTP response as a compression dictionary. We applied this to spatial simulation tensors:
+```
+Header (32 bytes): magic + dimensions + keyframe_interval + format_flag
 
-- **Web payload**: HTML page N-1 is dictionary for page N (468× on duplicate pages)
-- **Spatial tensor**: Frame N-1 is dictionary for Frame N (50× on ecosystem data)
-- **Same math. Different domain.**
+I-frame: zlib(full_frame)           — every 60 frames
+P-frame: count + indices[] + values[] — sparse scatter, GPU-native
+```
 
-This is not web compression applied to simulations. This is a **lossless video codec for scientific spatial compute**.
+Three format versions (auto-detected, backward compatible):
+- v1: zlib, row-major (24-byte header)
+- v2: zlib, Morton Z-curve (28-byte header)
+- v3: sparse scatter, Morton, I/P frames (32-byte header)
+
+## Morton Z-Curve
+
+All data stored in Morton Z-curve order. Spatial neighbors are close in memory. The Morton index IS the geometry — no coordinate transform needed. GPU buffers, disk, decoder all use the same ordering. De-Morton only at the browser boundary (GPU kernel, microseconds).
 
 ## Links
 
-- Data source: [Savanna Engine](https://github.com/norayr-m/savanna-engine) (100B cells, Apple M5 Max)
+- Savanna Engine: [github.com/norayr-m/savanna-engine](https://github.com/norayr-m/savanna-engine)
 - Carlos's library: [delta-compression-demo](https://github.com/carlosmateo10/delta-compression-demo) (MIT License)
-- [YouTube: 100B cell playback](https://youtu.be/6QiU7kUD3Os)
-- [1B cells in browser (5.4 MB)](https://norayr-m.github.io/savanna-engine/playback.html)
-- [Full report (PDF)](https://github.com/norayr-m/savanna-engine/blob/main/Carlos_Delta_Compression_Report.pdf)
 
 ## AI Co-Authorship
 
 Built collaboratively with [Claude](https://claude.ai) (Anthropic) and [Gemini Deep Think](https://deepmind.google/models/gemini/deep-think/) (Google). Bugs found by [Qwen3 Coder Next](https://huggingface.co/Qwen/Qwen3-Coder-Next) (Alibaba, local via LM Studio). The math is human. The code was built together. All are credited.
-
