@@ -35,6 +35,12 @@ do {
 print("  Grid: \(decoder.width)×\(decoder.height)")
 print("  Frames: \(decoder.frameCount)")
 print("  Total cells: \(decoder.totalCells)")
+if decoder.keyframeInterval > 0 {
+    let iFrames = (decoder.frameCount + decoder.keyframeInterval - 1) / decoder.keyframeInterval
+    let pFrames = decoder.frameCount - iFrames
+    print("  I/P frames: \(iFrames) I + \(pFrames) P (interval \(decoder.keyframeInterval))")
+    print("  Max seek distance: \(decoder.keyframeInterval) frames")
+}
 if decoder.needsLOD {
     print("  LOD: \(decoder.width)×\(decoder.height) → \(decoder.displayW)×\(decoder.displayH) (step \(decoder.step), JIT)")
 }
