@@ -16,13 +16,16 @@ public final class GPUDecoder {
     let xorPipeline: MTLComputePipelineState
     let demortPipeline: MTLComputePipelineState
     let lodPipeline: MTLComputePipelineState
+    let scatterPipeline: MTLComputePipelineState
 
     // Buffers (persistent, reused per frame)
     let frameBuf: MTLBuffer       // current frame (Morton order)
-    let deltaBuf: MTLBuffer       // decompressed delta
+    let deltaBuf: MTLBuffer       // decompressed delta (zlib mode)
     let rowMajorBuf: MTLBuffer    // de-Mortoned frame
     let displayBuf: MTLBuffer     // LOD output
     let mortonBuf: MTLBuffer      // mortonToNode mapping
+    let sparseIdxBuf: MTLBuffer   // sparse indices (reusable)
+    let sparseValBuf: MTLBuffer   // sparse values (reusable)
 
     public let width: Int
     public let height: Int
@@ -39,6 +42,7 @@ public final class GPUDecoder {
     public let totalCells: UInt64
     public let keyframeInterval: Int
     public let isMorton: Bool
+    public let format: CarlosDelta.Format
     var currentIndex: Int = -1
 
     public init(path: String, maxDisplay: Int = 2048) throws {
@@ -68,16 +72,28 @@ public final class GPUDecoder {
         self.totalCells = tc
         self.cellCount = w * h
 
-        // v1/v2 detection
+        // v1/v2/v3 detection
+        // v1: 24-byte header, zlib, row-major
+        // v2: 28-byte header, zlib, Morton, keyframe interval
+        // v3: 32-byte header, sparse or zlib, Morton, keyframe interval, format flag
         let kfiCandidate = Int(data[24..<28].withUnsafeBytes { $0.load(as: UInt32.self) })
         var offset: Int
         if kfiCandidate > 0 && kfiCandidate <= 1000 {
             self.keyframeInterval = kfiCandidate
             self.isMorton = true
-            offset = 28
+            // Check for v3 format flag at offset 28
+            if data.count >= 32 {
+                let fmtRaw = data[28..<32].withUnsafeBytes { $0.load(as: UInt32.self) }
+                self.format = CarlosDelta.Format(rawValue: fmtRaw) ?? .zlib
+                offset = 32
+            } else {
+                self.format = .zlib
+                offset = 28
+            }
         } else {
             self.keyframeInterval = 0
             self.isMorton = false
+            self.format = .zlib
             offset = 24
         }
 
@@ -109,6 +125,9 @@ public final class GPUDecoder {
         self.deltaBuf = dev.makeBuffer(length: cellCount, options: shared)!
         self.rowMajorBuf = dev.makeBuffer(length: cellCount, options: shared)!
         self.displayBuf = dev.makeBuffer(length: displayW * displayH, options: shared)!
+        // Sparse buffers: sized for worst case (all cells change)
+        self.sparseIdxBuf = dev.makeBuffer(length: cellCount * 4, options: shared)!
+        self.sparseValBuf = dev.makeBuffer(length: cellCount, options: shared)!
 
         // Build Morton mapping and upload to GPU
         let mortonToNode = isMorton ?
@@ -142,6 +161,8 @@ public final class GPUDecoder {
             function: library.makeFunction(name: "delta_demorton")!)
         self.lodPipeline = try dev.makeComputePipelineState(
             function: library.makeFunction(name: "delta_lod_downsample")!)
+        self.scatterPipeline = try dev.makeComputePipelineState(
+            function: library.makeFunction(name: "delta_sparse_scatter")!)
     }
 
     /// Decompress a frame from disk (CPU — zlib only, ~10ms for 100M)
@@ -189,19 +210,55 @@ public final class GPUDecoder {
             currentIndex = kf
         }
 
-        // Decode forward with GPU XOR
+        // Decode forward
         while currentIndex < index {
             let next = currentIndex + 1
 
             if isKeyframe(next) {
-                // I-frame: decompress directly into frameBuf
+                // I-frame: zlib decompress directly into frameBuf (CPU, rare)
                 let off = frameOffsets[next]
                 let sz = Int(data[off..<off+4].withUnsafeBytes { $0.load(as: UInt32.self) })
                 let compressed = [UInt8](data[off+4..<off+4+sz])
                 let dst = frameBuf.contents().bindMemory(to: UInt8.self, capacity: cellCount)
                 compression_decode_buffer(dst, cellCount, compressed, compressed.count, nil, COMPRESSION_ZLIB)
+            } else if format == .sparse {
+                // P-frame SPARSE: read (index, value) pairs, GPU scatter XOR — ZERO CPU
+                let off = frameOffsets[next]
+                let totalSize = Int(data[off..<off+4].withUnsafeBytes { $0.load(as: UInt32.self) })
+                let count = Int(data[off+4..<off+8].withUnsafeBytes { $0.load(as: UInt32.self) })
+                _ = totalSize
+
+                // Copy indices and values into GPU buffers (unified memory — just memcpy)
+                let idxStart = off + 8
+                let valStart = idxStart + count * 4
+                let idxDst = sparseIdxBuf.contents().bindMemory(to: UInt8.self, capacity: count * 4)
+                let valDst = sparseValBuf.contents().bindMemory(to: UInt8.self, capacity: count)
+                data[idxStart..<idxStart + count * 4].withUnsafeBytes {
+                    memcpy(idxDst, $0.baseAddress!, count * 4)
+                }
+                data[valStart..<valStart + count].withUnsafeBytes {
+                    memcpy(valDst, $0.baseAddress!, count)
+                }
+
+                // GPU scatter: frame[indices[i]] ^= values[i]
+                guard let cmdBuf = queue.makeCommandBuffer(),
+                      let enc = cmdBuf.makeComputeCommandEncoder() else { break }
+
+                enc.setComputePipelineState(scatterPipeline)
+                enc.setBuffer(frameBuf, offset: 0, index: 0)
+                enc.setBuffer(sparseIdxBuf, offset: 0, index: 1)
+                enc.setBuffer(sparseValBuf, offset: 0, index: 2)
+                var cnt = UInt32(count)
+                enc.setBytes(&cnt, length: 4, index: 3)
+                let tpg = scatterPipeline.maxTotalThreadsPerThreadgroup
+                enc.dispatchThreadgroups(
+                    MTLSize(width: (count + tpg - 1) / tpg, height: 1, depth: 1),
+                    threadsPerThreadgroup: MTLSize(width: tpg, height: 1, depth: 1))
+                enc.endEncoding()
+                cmdBuf.commit()
+                cmdBuf.waitUntilCompleted()
             } else {
-                // P-frame: decompress delta into deltaBuf, GPU XOR into frameBuf
+                // P-frame ZLIB: decompress delta, GPU XOR
                 _ = decompressFrame(at: next)
 
                 guard let cmdBuf = queue.makeCommandBuffer(),

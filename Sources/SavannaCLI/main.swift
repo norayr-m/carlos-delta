@@ -238,10 +238,12 @@ if let dir = recordDir {
         try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
         deltaPath = "\(dir)/recording.savanna"
     }
+    let encFormat: CarlosDelta.Format = args.contains("--zlib") ? .zlib : .sparse
     deltaEncoder = try? CarlosDelta.Encoder(path: deltaPath, width: width, height: height,
-                                             keyframeInterval: keyframeInterval)
+                                             keyframeInterval: keyframeInterval, format: encFormat)
     if deltaEncoder != nil {
         print("  Carlos Delta encoder: \(deltaPath)")
+        print("  Format: \(encFormat == .sparse ? "sparse scatter (GPU-native)" : "zlib (CPU)")")
         print("  I-frame interval: every \(keyframeInterval) frames")
     }
 }
@@ -386,7 +388,13 @@ asyncWriteQueue.sync {}
 if let enc = deltaEncoder {
     enc.finalize()
     let fileSize = (try? FileManager.default.attributesOfItem(atPath: enc.url.path)[.size] as? Int) ?? 0
-    print("  Carlos Delta: \(enc.frameCount) frames (\(enc.iFrameCount) I + \(enc.pFrameCount) P), \(fileSize / 1_000_000) MB compressed")
+    let avgEntries = enc.pFrameCount > 0 ? enc.totalSparseEntries / UInt64(enc.pFrameCount) : 0
+    let sparsePct = enc.pFrameCount > 0 && totalCellCount > 0 ?
+        String(format: "%.1f", Double(avgEntries) / Double(totalCellCount) * 100) : "0"
+    print("  Carlos Delta: \(enc.frameCount) frames (\(enc.iFrameCount) I + \(enc.pFrameCount) P), \(fileSize / 1_000_000) MB")
+    if enc.totalSparseEntries > 0 {
+        print("  Sparse: \(avgEntries) avg entries/frame (\(sparsePct)% change rate)")
+    }
 }
 
 // ── Summary ──────────────────────────────────────────────
