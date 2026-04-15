@@ -1069,3 +1069,90 @@ kernel void census_reduce(
     if (e == ZEBRA || e == LION)
         atomic_fetch_add_explicit(energy_sum, uint(energy[gid]), memory_order_relaxed);
 }
+
+// ══════════════════════════════════════════════════════════
+// CARLOS DELTA — GPU Decode Kernels
+// Phase 1: CPU decompresses zlib, GPU does XOR + de-Morton + LOD
+// Phase 2: sparse scatter format, zero CPU
+// ══════════════════════════════════════════════════════════
+
+// XOR a decompressed delta buffer into the frame buffer (in-place)
+kernel void delta_xor(
+    device uint8_t*       frame       [[ buffer(0) ]],  // current frame (modified in-place)
+    device const uint8_t* delta       [[ buffer(1) ]],  // decompressed XOR delta
+    constant uint32_t&    count       [[ buffer(2) ]],
+    uint                  gid         [[ thread_position_in_grid ]]
+) {
+    if (gid >= count) return;
+    frame[gid] = frame[gid] ^ delta[gid];
+}
+
+// De-Morton: scatter from Morton-rank order to row-major order
+kernel void delta_demorton(
+    device const uint8_t*  morton_frame  [[ buffer(0) ]],  // Morton-ordered frame
+    device uint8_t*        rowmajor_out  [[ buffer(1) ]],  // row-major output
+    device const int32_t*  morton_to_node [[ buffer(2) ]], // mortonToNode[rank] = rowmajor index
+    constant uint32_t&     count         [[ buffer(3) ]],
+    uint                   gid           [[ thread_position_in_grid ]]
+) {
+    if (gid >= count) return;
+    rowmajor_out[morton_to_node[gid]] = morton_frame[gid];
+}
+
+// LOD downsample: majority vote + trophic boost (replaces CPU displayFrame)
+// Input: row-major entity buffer (full res)
+// Output: downsampled int8 entity buffer (display res)
+kernel void delta_lod_downsample(
+    device const uint8_t*  src         [[ buffer(0) ]],  // full-res row-major
+    device int8_t*         dst         [[ buffer(1) ]],  // downsampled output
+    constant uint32_t&     src_w       [[ buffer(2) ]],
+    constant uint32_t&     dst_w       [[ buffer(3) ]],
+    constant uint32_t&     dst_h       [[ buffer(4) ]],
+    constant uint32_t&     step        [[ buffer(5) ]],
+    uint                   gid         [[ thread_position_in_grid ]]
+) {
+    if (gid >= dst_w * dst_h) return;
+
+    uint dx = gid % dst_w;
+    uint dy = gid / dst_w;
+    uint s = step;
+    uint bs = s * s;
+
+    // Count entities in block
+    uint counts[5] = {0, 0, 0, 0, 0};
+    for (uint sy = 0; sy < s; sy++) {
+        uint rowOff = (dy * s + sy) * src_w + dx * s;
+        for (uint sx = 0; sx < s; sx++) {
+            uint e = src[rowOff + sx] & 0x7;
+            if (e < 5) counts[e]++;
+        }
+    }
+
+    // Majority vote
+    int8_t best = 0;
+    uint bestC = counts[0];
+    if (counts[1] > bestC) { best = 1; bestC = counts[1]; }
+    if (counts[2] > bestC) { best = 2; bestC = counts[2]; }
+    if (counts[3] > bestC) { best = 3; bestC = counts[3]; }
+    if (counts[4] > bestC) { best = 4; }
+
+    // Trophic boost: rare predators stay visible
+    if (counts[2] * 100 > bs * 3) best = 2;  // zebra >3%
+    if (counts[3] * 100 > bs * 1) best = 3;  // lion >1%
+
+    dst[gid] = best;
+}
+
+// Phase 2: sparse scatter — apply non-zero delta entries
+// P-frame format: array of (uint32 index, uint8 value) packed as 5-byte entries
+kernel void delta_sparse_scatter(
+    device uint8_t*        frame        [[ buffer(0) ]],  // frame buffer (XOR in-place)
+    device const uint32_t* indices      [[ buffer(1) ]],  // sparse indices
+    device const uint8_t*  values       [[ buffer(2) ]],  // sparse values
+    constant uint32_t&     count        [[ buffer(3) ]],  // number of entries
+    uint                   gid          [[ thread_position_in_grid ]]
+) {
+    if (gid >= count) return;
+    uint idx = indices[gid];
+    frame[idx] = frame[idx] ^ values[gid];
+}
