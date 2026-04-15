@@ -217,10 +217,7 @@ async function fetchAndRender() {
     const buf = await resp.arrayBuffer();
     const header = new Uint32Array(buf, 0, 4);
     GRID_W = header[0]; GRID_H = header[1];
-    if (totalWorldCells === 0) {
-      totalWorldCells = GRID_W * GRID_H;
-      document.getElementById('hud-total').textContent = totalWorldCells.toLocaleString() + ' cells';
-    }
+    // totalWorldCells comes from /info (real count, not downsampled grid)
     const tick = header[2];
     if (tick === lastTick) return;
     lastTick = tick;
@@ -357,15 +354,14 @@ async function loop() {
   requestAnimationFrame(loop);
 }
 
-// Fetch total cell count for HUD
-fetch('/info').then(r => r.json()).then(info => {
-  const total = info.total_cells || info.cells;
-  totalWorldCells = total;
-  document.getElementById('hud-total').textContent = total.toLocaleString() + ' cells';
-}).catch(() => {});
-
 // ── Cell Counter — dramatic zoom indicator ──────────
-let totalWorldCells = 0;  // set from /info or first frame
+let totalWorldCells = 0;
+
+// Fetch real cell count from server (not downsampled grid size)
+fetch('/info').then(r => r.json()).then(info => {
+  totalWorldCells = info.total_cells || info.cells || (info.width * info.height);
+  document.getElementById('hud-total').textContent = totalWorldCells.toLocaleString() + ' cells';
+}).catch(() => {});
 function updateCellCounter() {
   // How many world cells are visible in the viewport?
   const viewW = Math.min(W / zoom, GRID_W);  // thumbnail pixels visible
