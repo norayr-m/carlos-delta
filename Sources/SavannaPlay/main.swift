@@ -44,7 +44,20 @@ if decoder.keyframeInterval > 0 {
 if decoder.needsLOD {
     print("  LOD: \(decoder.width)×\(decoder.height) → \(decoder.displayW)×\(decoder.displayH) (step \(decoder.step), JIT)")
 }
-print("  Mode: streaming (JIT decode + downsample per request)")
+
+// Pre-warm display cache — decode all frames before accepting requests
+if decoder.frameCount > 0 {
+    print("  Warming cache: \(decoder.frameCount) frames...", terminator: "")
+    fflush(stdout)
+    let t0 = CFAbsoluteTimeGetCurrent()
+    for i in 0..<decoder.frameCount {
+        _ = decoder.displayFrame(i)
+    }
+    let t1 = CFAbsoluteTimeGetCurrent()
+    let perFrame = (t1 - t0) / Double(decoder.frameCount) * 1000
+    print(" \(String(format: "%.1f", t1 - t0))s (\(String(format: "%.0f", perFrame))ms/frame)")
+}
+print("  Mode: streaming (cache pre-warmed, all frames ready)")
 
 // ── HTTP Server ─────────────────────────────────────
 import Foundation
