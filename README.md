@@ -4,6 +4,23 @@
 
 Lossless delta compression for spatial simulation frames. 50× measured on 1 billion cell ecosystem data.
 
+## Quick Start
+
+```bash
+git clone https://github.com/norayr-m/carlos-delta.git
+cd carlos-delta
+swift build -c release
+
+# 1. Simulate → writes recording.savanna
+.build/release/simulate --cells 1M --ticks 20
+
+# 2. Playback → serves to browser
+.build/release/playback recording.savanna
+# → open http://localhost:8800
+```
+
+That's it. Two binaries. One file. WebGL viewer with zoom and neon cell counter.
+
 Inspired by [Carlos Mateo Muñoz](https://github.com/carlosmateo10/delta-compression-demo)'s RFC 9842 Dictionary TTL extension (MIT License).
 
 ## The Idea
