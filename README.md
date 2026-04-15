@@ -4,6 +4,17 @@
 
 Lossless delta compression for spatial simulation frames. 50× measured on 1 billion cell ecosystem data.
 
+## The Pipeline
+
+```
+GPU Simulation → Carlos Delta Encoder → .savanna file → Carlos Delta Decoder → GPU LOD → Browser
+     ↑                   ↑                   ↑                    ↑              ↑          ↑
+  savanna-cli     XOR + zlib           one file          XOR + inflate     downsample    WebGL
+  (Metal GPU)    (50× lossless)       on disk           (at startup)     (at startup)   (60fps)
+```
+
+Full architecture: [ARCHITECTURE.md](ARCHITECTURE.md)
+
 ## Quick Start
 
 ```bash
