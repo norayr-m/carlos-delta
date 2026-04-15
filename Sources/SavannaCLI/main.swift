@@ -215,16 +215,6 @@ if let rec = recorder, !benchMode && recordDir == nil {
     print("  Recorder: \(rec.capacity) frames (\(rec.capacity * frameBytes / 1_000_000) MB)")
 }
 
-// ── Frame recording to disk ──────────────────────────────
-if let dir = recordDir {
-    let fm = FileManager.default
-    try? fm.createDirectory(atPath: dir, withIntermediateDirectories: true)
-    // Write meta.json
-    let meta = "{\"width\":\(width),\"height\":\(height),\"frame_count\":0,\"seed\":42}"
-    try? meta.write(toFile: "\(dir)/meta.json", atomically: true, encoding: .utf8)
-    print("  Recording to: \(dir)/")
-}
-
 if checkpointInterval > 0 {
     print("  Checkpointing every \(checkpointInterval) ticks")
 }
@@ -245,6 +235,7 @@ if let dir = recordDir {
         if !parent.isEmpty { try? FileManager.default.createDirectory(atPath: parent, withIntermediateDirectories: true) }
     } else {
         // Directory: --record savanna_rec → savanna_rec/recording.savanna
+        try? FileManager.default.createDirectory(atPath: dir, withIntermediateDirectories: true)
         deltaPath = "\(dir)/recording.savanna"
     }
     deltaEncoder = try? CarlosDelta.Encoder(path: deltaPath, width: width, height: height,
@@ -296,19 +287,6 @@ for t in 0..<tickLimit {
         let entities = engine.readEntities()  // Morton order — no de-Morton, straight to disk
         asyncWriteQueue.async {
             enc.addFrame(entities)
-        }
-    } else if let dir = recordDir {
-        // Fallback: raw frame write (row-major for compatibility)
-        let entities = engine.readEntitiesRowMajor()
-        let framePath = "\(dir)/frame_\(String(format: "%06d", t)).bin"
-        let frameNum = t + 1
-        asyncWriteQueue.async {
-            entities.withUnsafeBytes { ptr in
-                let data = Data(bytes: ptr.baseAddress!, count: ptr.count)
-                try? data.write(to: URL(fileURLWithPath: framePath))
-            }
-            let meta = "{\"width\":\(width),\"height\":\(height),\"frame_count\":\(frameNum),\"seed\":42}"
-            try? meta.write(toFile: "\(dir)/meta.json", atomically: true, encoding: .utf8)
         }
     }
 
