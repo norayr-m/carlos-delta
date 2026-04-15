@@ -40,18 +40,20 @@ let outputPath = arg("output", default: "recording.savanna")
 let playbackSec = Double(ticks) / 60.0
 
 // ── Estimate and confirm ─────────────────────────────
-let rawBytes = n * ticks
-let estCompressed = n / 50 * ticks + n / 2  // ~50× deltas + keyframe
-let estTimeSec = Double(ticks) * Double(n) / 50_000_000.0  // ~50M cells/sec throughput
+let cellCount = side * side
+let rawBytes = Int64(cellCount) * Int64(ticks)
+let estCompressed = Int64(cellCount) / 50 * Int64(ticks) + Int64(cellCount) / 2
+let estTimeSec = Double(ticks) * Double(cellCount) / 50_000_000.0
 
-func humanSize(_ b: Int) -> String {
+func humanSize(_ b: Int64) -> String {
+    if b >= 1_000_000_000_000 { return String(format: "%.1f TB", Double(b) / 1e12) }
     if b >= 1_000_000_000 { return String(format: "%.1f GB", Double(b) / 1e9) }
     if b >= 1_000_000 { return String(format: "%.1f MB", Double(b) / 1e6) }
     if b >= 1_000 { return String(format: "%.1f KB", Double(b) / 1e3) }
     return "\(b) B"
 }
 
-let diskFree = (try? FileManager.default.attributesOfFileSystem(forPath: ".")[ .systemFreeSize] as? Int) ?? 0
+let diskFree = Int64((try? FileManager.default.attributesOfFileSystem(forPath: ".")[.systemFreeSize] as? Int) ?? 0)
 
 print()
 print("  ╔═══════════════════════════════════════════════╗")
