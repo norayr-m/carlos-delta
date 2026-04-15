@@ -122,7 +122,7 @@ const nf=v.getUint32(o,true);o+=4;TC=Number(v.getBigUint64(o,true));o+=8;
 document.getElementById('ht').textContent=nf;
 const frames=[];const cc=GW*GH;
 for(let i=0;i<nf;i++){const sz=v.getUint32(o,true);o+=4;
-const comp=new Uint8Array(b,o,sz);o+=sz;const raw=pako.inflate(comp);
+const comp=new Uint8Array(b,o,sz);o+=sz;const raw=pako.inflateRaw(comp);
 if(i===0){frames.push(new Uint8Array(raw))}
 else{const p=frames[i-1];const f=new Uint8Array(cc);
 for(let j=0;j<cc;j++)f[j]=p[j]^raw[j];frames.push(f)}}

@@ -39,10 +39,50 @@ let outputPath = arg("output", default: "recording.savanna")
 
 let playbackSec = Double(ticks) / 60.0
 
-print("carlos-delta: simulate")
-print("  Cells:    \(side)×\(side) = \(totalCells.formatted())")
-print("  Frames:   \(ticks) (\(String(format: "%.1f", playbackSec))s at 60fps)")
-print("  Output:   \(outputPath)")
+// ── Estimate and confirm ─────────────────────────────
+let rawBytes = n * ticks
+let estCompressed = n / 50 * ticks + n / 2  // ~50× deltas + keyframe
+let estTimeSec = Double(ticks) * Double(n) / 50_000_000.0  // ~50M cells/sec throughput
+
+func humanSize(_ b: Int) -> String {
+    if b >= 1_000_000_000 { return String(format: "%.1f GB", Double(b) / 1e9) }
+    if b >= 1_000_000 { return String(format: "%.1f MB", Double(b) / 1e6) }
+    if b >= 1_000 { return String(format: "%.1f KB", Double(b) / 1e3) }
+    return "\(b) B"
+}
+
+let diskFree = (try? FileManager.default.attributesOfFileSystem(forPath: ".")[ .systemFreeSize] as? Int) ?? 0
+
+print()
+print("  ╔═══════════════════════════════════════════════╗")
+print("  ║  CARLOS DELTA — SIMULATION PLAN               ║")
+print("  ╠═══════════════════════════════════════════════╣")
+print("  ║  Cells:       \(totalCells.formatted())")
+print("  ║  Grid:        \(side)×\(side)")
+print("  ║  Frames:      \(ticks)")
+print("  ║  Playback:    \(String(format: "%.1f", playbackSec))s at 60fps")
+print("  ╠═══════════════════════════════════════════════╣")
+print("  ║  Raw data:    \(humanSize(rawBytes))")
+print("  ║  Compressed:  ~\(humanSize(estCompressed)) (est. 50×)")
+print("  ║  Disk free:   \(humanSize(diskFree))")
+print("  ║  Est. time:   \(String(format: "%.1f", estTimeSec))s")
+print("  ╠═══════════════════════════════════════════════╣")
+print("  ║  Output:      \(outputPath)")
+print("  ╚═══════════════════════════════════════════════╝")
+
+if estCompressed > diskFree {
+    print()
+    print("  ⚠️  WARNING: Estimated size exceeds free disk!")
+}
+
+print()
+print("  Reserve ~\(humanSize(estCompressed)) on disk and start? [Y/n] ", terminator: "")
+fflush(stdout)
+if let answer = readLine()?.trimmingCharacters(in: .whitespaces).lowercased(),
+   answer == "n" || answer == "no" {
+    print("  Aborted.")
+    exit(0)
+}
 
 // ── Zlib helpers ────────────────────────────────────
 func zlibCompress(_ input: [UInt8]) -> [UInt8] {
