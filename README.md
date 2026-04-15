@@ -11,32 +11,35 @@ git clone https://github.com/norayr-m/carlos-delta.git
 cd carlos-delta
 swift build -c release
 
-# 1. Simulate 1 million cells, 30 seconds of playback
-.build/release/simulate --cells 1M --seconds 30
+# 1. Simulate — real GPU ecosystem with Carlos Delta encoding
+.build/release/savanna-cli --cells 1M --days 30 --record myrun/
 
 # 2. Play it in a browser
-.build/release/playback recording.savanna
+.build/release/savanna-play myrun/recording.savanna
 # → open http://localhost:8800
 ```
 
-That's it. Two binaries. One file. WebGL viewer with zoom and neon cell counter.
+That's it. Two binaries. One `.savanna` file. Metal GPU simulation → XOR delta → zlib → WebGL playback.
 
 ### Options
 
 ```bash
 # Cell count (human-readable)
 --cells 1M          # 1 million (default)
---cells 100M        # 100 million
+--cells 100M        # 100 million  
 --cells 1B          # 1 billion
 
 # Duration
---seconds 30        # 30 seconds of playback at 60fps (= 1800 frames)
---ticks 100         # or specify frames directly
+--days 30           # simulate 30 days (4 ticks/day)
+--ticks 100         # or specify ticks directly
 
-# Output
---output my.savanna # custom filename (default: recording.savanna)
+# Recording
+--record myrun/     # output directory (writes recording.savanna)
 
-# Playback port
+# GPU init (fast)
+--gpu-init          # 3.8ms GPU state init (vs 30s CPU)
+
+# Playback port  
 --port 9090         # custom port (default: 8800)
 ```
 
