@@ -83,7 +83,7 @@
   <span style="color:#c04030">&#x2B22; <span class="val" id="hud-lion">0</span></span>
   <span class="dim"><span class="val" id="hud-fps">0</span>fps <span class="val" id="hud-speed-factor">1x</span></span>
   <span class="dim" style="color:#c4a35a;font-size:11px;">WebGL</span>
-  <span style="color:#c4a35a;font-size:18px;font-weight:bold;letter-spacing:1px;" id="hud-total">107,374,182,400 cells</span>
+  <span style="color:#c4a35a;font-size:18px;font-weight:bold;letter-spacing:1px;" id="hud-total">— cells</span>
 </div>
 <div id="hud-phase-box">DAY</div>
 <div id="cell-counter"><span class="label">CELLS IN VIEW</span><span id="cc-num">0</span><span class="sub" id="cc-sub"></span></div>
@@ -217,6 +217,10 @@ async function fetchAndRender() {
     const buf = await resp.arrayBuffer();
     const header = new Uint32Array(buf, 0, 4);
     GRID_W = header[0]; GRID_H = header[1];
+    if (totalWorldCells === 0) {
+      totalWorldCells = GRID_W * GRID_H;
+      document.getElementById('hud-total').textContent = totalWorldCells.toLocaleString() + ' cells';
+    }
     const tick = header[2];
     if (tick === lastTick) return;
     lastTick = tick;
@@ -361,7 +365,7 @@ fetch('/info').then(r => r.json()).then(info => {
 }).catch(() => {});
 
 // ── Cell Counter — dramatic zoom indicator ──────────
-let totalWorldCells = 107374182400;  // updated from /info
+let totalWorldCells = 0;  // set from /info or first frame
 function updateCellCounter() {
   // How many world cells are visible in the viewport?
   const viewW = Math.min(W / zoom, GRID_W);  // thumbnail pixels visible
