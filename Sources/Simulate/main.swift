@@ -26,13 +26,23 @@ func parseCells(_ s: String) -> Int {
 
 let totalCells = parseCells(arg("cells", default: "1M"))
 let side = Int(sqrt(Double(totalCells)))
-let ticks = Int(arg("ticks", default: "100"))!
+
+// Playback seconds → ticks (60 fps)
+let seconds = Int(arg("seconds", default: "0"))!
+let ticks: Int
+if seconds > 0 {
+    ticks = seconds * 60  // 60 fps playback
+} else {
+    ticks = Int(arg("ticks", default: "100"))!
+}
 let outputPath = arg("output", default: "recording.savanna")
 
+let playbackSec = Double(ticks) / 60.0
+
 print("carlos-delta: simulate")
-print("  Cells: \(side)×\(side) = \(side * side)")
-print("  Ticks: \(ticks)")
-print("  Output: \(outputPath)")
+print("  Cells:    \(side)×\(side) = \(totalCells.formatted())")
+print("  Frames:   \(ticks) (\(String(format: "%.1f", playbackSec))s at 60fps)")
+print("  Output:   \(outputPath)")
 
 // ── Zlib helpers ────────────────────────────────────
 func zlibCompress(_ input: [UInt8]) -> [UInt8] {

@@ -11,15 +11,34 @@ git clone https://github.com/norayr-m/carlos-delta.git
 cd carlos-delta
 swift build -c release
 
-# 1. Simulate → writes recording.savanna
-.build/release/simulate --cells 1M --ticks 20
+# 1. Simulate 1 million cells, 30 seconds of playback
+.build/release/simulate --cells 1M --seconds 30
 
-# 2. Playback → serves to browser
+# 2. Play it in a browser
 .build/release/playback recording.savanna
 # → open http://localhost:8800
 ```
 
 That's it. Two binaries. One file. WebGL viewer with zoom and neon cell counter.
+
+### Options
+
+```bash
+# Cell count (human-readable)
+--cells 1M          # 1 million (default)
+--cells 100M        # 100 million
+--cells 1B          # 1 billion
+
+# Duration
+--seconds 30        # 30 seconds of playback at 60fps (= 1800 frames)
+--ticks 100         # or specify frames directly
+
+# Output
+--output my.savanna # custom filename (default: recording.savanna)
+
+# Playback port
+--port 9090         # custom port (default: 8800)
+```
 
 Inspired by [Carlos Mateo Muñoz](https://github.com/carlosmateo10/delta-compression-demo)'s RFC 9842 Dictionary TTL extension (MIT License).
 
