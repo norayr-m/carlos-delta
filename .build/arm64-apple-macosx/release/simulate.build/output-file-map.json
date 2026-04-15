@@ -1,0 +1,13 @@
+{
+  "": {
+    "dependencies": "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/simulate.build/simulate.d",
+    "object": "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/simulate.build/simulate.o",
+    "swift-dependencies": "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/simulate.build/primary.swiftdeps"
+  },
+  "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/Sources/Simulate/main.swift": {
+    "object": "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/simulate.build/main.swift.o",
+    "swiftmodule": "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/simulate.build/main~partial.swiftmodule",
+    "swift-dependencies": "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/simulate.build/main.swiftdeps",
+    "diagnostics": "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/simulate.build/main.dia"
+  }
+}

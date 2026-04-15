@@ -1,0 +1,407 @@
+{
+  "builtTestProducts" : [
+
+  ],
+  "copyCommands" : {
+
+  },
+  "explicitTargetDependencyImportCheckingMode" : {
+    "none" : {
+
+    }
+  },
+  "generatedSourceTargetSet" : [
+
+  ],
+  "pluginDescriptions" : [
+
+  ],
+  "swiftCommands" : {
+    "C.playback-arm64-apple-macosx-release.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/playback.build/sources",
+      "importPath" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/Sources/Playback/main.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/playback.build/sources"
+        }
+      ],
+      "isLibrary" : false,
+      "moduleName" : "playback",
+      "moduleOutputPath" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/Modules/playback.swiftmodule",
+      "objects" : [
+        "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/playback.build/main.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-whole-module-optimization",
+        "-num-threads",
+        "18",
+        "-serialize-diagnostics",
+        "-O",
+        "-j18",
+        "-DSWIFT_PACKAGE",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/ModuleCache",
+        "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "playback_main",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "carlos_delta"
+      ],
+      "outputFileMapPath" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/playback.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/playback.build/main.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/Modules/playback.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/Sources/Playback/main.swift"
+      ],
+      "tempsPath" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/playback.build",
+      "wholeModuleOptimization" : true
+    },
+    "C.simulate-arm64-apple-macosx-release.module" : {
+      "executable" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "fileList" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/simulate.build/sources",
+      "importPath" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/Modules",
+      "inputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/Sources/Simulate/main.swift"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/swift-version--58304C5D6DBC2206.txt"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/simulate.build/sources"
+        }
+      ],
+      "isLibrary" : false,
+      "moduleName" : "simulate",
+      "moduleOutputPath" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/Modules/simulate.swiftmodule",
+      "objects" : [
+        "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/simulate.build/main.swift.o"
+      ],
+      "otherArguments" : [
+        "-target",
+        "arm64-apple-macosx14.0",
+        "-whole-module-optimization",
+        "-num-threads",
+        "18",
+        "-serialize-diagnostics",
+        "-O",
+        "-j18",
+        "-DSWIFT_PACKAGE",
+        "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+        "-module-cache-path",
+        "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/ModuleCache",
+        "-parseable-output",
+        "-Xfrontend",
+        "-entry-point-function-name",
+        "-Xfrontend",
+        "simulate_main",
+        "-swift-version",
+        "5",
+        "-plugin-path",
+        "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+        "-sdk",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-F",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-I",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-L",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+        "-g",
+        "-Xcc",
+        "-isysroot",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+        "-Xcc",
+        "-F",
+        "-Xcc",
+        "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+        "-Xcc",
+        "-fPIC",
+        "-Xcc",
+        "-g",
+        "-package-name",
+        "carlos_delta"
+      ],
+      "outputFileMapPath" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/simulate.build/output-file-map.json",
+      "outputs" : [
+        {
+          "kind" : "file",
+          "name" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/simulate.build/main.swift.o"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/Modules/simulate.swiftmodule"
+        }
+      ],
+      "prepareForIndexing" : false,
+      "sources" : [
+        "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/Sources/Simulate/main.swift"
+      ],
+      "tempsPath" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/simulate.build",
+      "wholeModuleOptimization" : true
+    }
+  },
+  "swiftFrontendCommands" : {
+
+  },
+  "swiftTargetScanArgs" : {
+    "playback" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "playback",
+      "-package-name",
+      "carlos_delta",
+      "-c",
+      "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/Sources/Playback/main.swift",
+      "-I",
+      "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-whole-module-optimization",
+      "-num-threads",
+      "18",
+      "-serialize-diagnostics",
+      "-O",
+      "-j18",
+      "-DSWIFT_PACKAGE",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/ModuleCache",
+      "-parseable-output",
+      "-Xfrontend",
+      "-entry-point-function-name",
+      "-Xfrontend",
+      "playback_main",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "carlos_delta",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ],
+    "simulate" : [
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc",
+      "-module-name",
+      "simulate",
+      "-package-name",
+      "carlos_delta",
+      "-c",
+      "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/Sources/Simulate/main.swift",
+      "-I",
+      "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/Modules",
+      "-target",
+      "arm64-apple-macosx14.0",
+      "-whole-module-optimization",
+      "-num-threads",
+      "18",
+      "-serialize-diagnostics",
+      "-O",
+      "-j18",
+      "-DSWIFT_PACKAGE",
+      "-DSWIFT_MODULE_RESOURCE_BUNDLE_UNAVAILABLE",
+      "-module-cache-path",
+      "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/ModuleCache",
+      "-parseable-output",
+      "-Xfrontend",
+      "-entry-point-function-name",
+      "-Xfrontend",
+      "simulate_main",
+      "-swift-version",
+      "5",
+      "-plugin-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/swift/host/plugins/testing",
+      "-sdk",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-F",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-I",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-L",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/usr/lib",
+      "-g",
+      "-Xcc",
+      "-isysroot",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX26.4.sdk",
+      "-Xcc",
+      "-F",
+      "-Xcc",
+      "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks",
+      "-Xcc",
+      "-fPIC",
+      "-Xcc",
+      "-g",
+      "-package-name",
+      "carlos_delta",
+      "-driver-use-frontend-path",
+      "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+    ]
+  },
+  "targetDependencyMap" : {
+    "playback" : [
+
+    ],
+    "simulate" : [
+
+    ]
+  },
+  "testDiscoveryCommands" : {
+
+  },
+  "testEntryPointCommands" : {
+
+  },
+  "traitConfiguration" : {
+    "default" : {
+
+    }
+  },
+  "writeCommands" : {
+    "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/playback.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/Sources/Playback/main.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/playback.build/sources"
+    },
+    "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/playback.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/playback.build/main.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/playback.product/Objects.LinkFileList"
+    },
+    "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/simulate.build/sources" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<sources-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/Sources/Simulate/main.swift"
+        }
+      ],
+      "outputFilePath" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/simulate.build/sources"
+    },
+    "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/simulate.product/Objects.LinkFileList" : {
+      "alwaysOutOfDate" : false,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<link-file-list>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/simulate.build/main.swift.o"
+        }
+      ],
+      "outputFilePath" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/simulate.product/Objects.LinkFileList"
+    },
+    "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/swift-version--58304C5D6DBC2206.txt" : {
+      "alwaysOutOfDate" : true,
+      "inputs" : [
+        {
+          "kind" : "virtual",
+          "name" : "<swift-get-version>"
+        },
+        {
+          "kind" : "file",
+          "name" : "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/swiftc"
+        }
+      ],
+      "outputFilePath" : "/Users/norayr/000_AI_Work/0_Projects/carlos-delta/.build/arm64-apple-macosx/release/swift-version--58304C5D6DBC2206.txt"
+    }
+  }
+}
