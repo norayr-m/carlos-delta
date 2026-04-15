@@ -202,7 +202,8 @@ func handleRequest(_ fd: Int32) {
     }
 
     let headers = "\(status)Content-Type: \(ct)\r\nContent-Length: \(body.count)\r\nAccess-Control-Allow-Origin: *\r\nConnection: close\r\n\r\n"
-    headers.data(using: .utf8)!.withUnsafeBytes { _ = write(fd, $0.baseAddress!, headers.count) }
+    let headerData = headers.data(using: .utf8)!
+    headerData.withUnsafeBytes { _ = write(fd, $0.baseAddress!, headerData.count) }
     body.withUnsafeBytes { _ = write(fd, $0.baseAddress!, body.count) }
     close(fd)
 }
