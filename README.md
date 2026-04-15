@@ -43,3 +43,7 @@ This is not web compression applied to simulations. This is a **lossless video c
 - [1B cells in browser (5.4 MB)](https://norayr-m.github.io/savanna-engine/playback.html)
 - [Full report (PDF)](https://github.com/norayr-m/savanna-engine/blob/main/Carlos_Delta_Compression_Report.pdf)
 
+## AI Co-Authorship
+
+Built collaboratively with [Claude](https://claude.ai) (Anthropic) and [Gemini Deep Think](https://deepmind.google/models/gemini/deep-think/) (Google). Bugs found by [Qwen3 Coder Next](https://huggingface.co/Qwen/Qwen3-Coder-Next) (Alibaba, local via LM Studio). The math is human. The code was built together. All are credited.
+
