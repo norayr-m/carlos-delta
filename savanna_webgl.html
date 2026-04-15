@@ -363,9 +363,13 @@ fetch('/info').then(r => r.json()).then(info => {
   document.getElementById('hud-total').textContent = totalWorldCells.toLocaleString() + ' cells';
 }).catch(() => {});
 function updateCellCounter() {
-  // How many world cells are visible in the viewport?
-  const viewW = Math.min(W / zoom, GRID_W);  // thumbnail pixels visible
-  const viewH = Math.min(H / zoom, GRID_H);
+  // Visible rectangle in grid coordinates (accounting for zoom AND pan)
+  const gridLeft = Math.max(0, -panX / zoom);
+  const gridTop = Math.max(0, -panY / zoom);
+  const gridRight = Math.min(GRID_W, (W - panX) / zoom);
+  const gridBottom = Math.min(GRID_H, (H - panY) / zoom);
+  const viewW = Math.max(0, gridRight - gridLeft);
+  const viewH = Math.max(0, gridBottom - gridTop);
   const visiblePixels = Math.round(viewW * viewH);
   // Each thumbnail pixel = ratio of real cells
   const cellsPerPixel = totalWorldCells / (GRID_W * GRID_H);
