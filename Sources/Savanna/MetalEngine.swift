@@ -246,6 +246,9 @@ public final class MetalEngine {
         }
     }
 
+    /// Wind strength (0 = isotropic, 1 = fully directional). Set by DJ panel.
+    public var windStrength: Float = 0.6
+
     private func encodeScent(cmdBuf: MTLCommandBuffer, scent: MTLBuffer, prev: MTLBuffer,
                              sourceType: Int8, emitStr: Float, windDir: UInt32) {
         guard let blit = cmdBuf.makeBlitCommandEncoder() else { return }
@@ -265,7 +268,9 @@ public final class MetalEngine {
         var nc = UInt32(nodeCount)
         enc.setBytes(&nc, length: 4, index: 6)
         var wd = windDir
-        enc.setBytes(&wd, length: 4, index: 7)  // Serengeti wind
+        enc.setBytes(&wd, length: 4, index: 7)  // wind direction
+        var ws = windStrength
+        enc.setBytes(&ws, length: 4, index: 8)  // wind strength
 
         let tpg = scentPipeline.maxTotalThreadsPerThreadgroup
         enc.dispatchThreadgroups(MTLSize(width: (nodeCount + tpg - 1) / tpg, height: 1, depth: 1),
@@ -273,11 +278,42 @@ public final class MetalEngine {
         enc.endEncoding()
     }
 
+    /// Wind override: nil = use seasonal Serengeti wind, non-nil = fixed direction (0-5)
+    public var windOverride: UInt32? = nil
+    /// Wind enabled: false = direction 6 (no wind bias in scent kernel)
+    public var windActive: Bool = true
+    private var lastWindActive: Bool = true
+
+    /// Clear all scent fields (call when wind changes to reset accumulated bias)
+    public func resetScent() {
+        let n = nodeCount * 4
+        memset(scentZebraBuf.contents(), 0, n)
+        memset(scentZebraPrevBuf.contents(), 0, n)
+        memset(scentGrassBuf.contents(), 0, n)
+        memset(scentGrassPrevBuf.contents(), 0, n)
+        memset(scentLionBuf.contents(), 0, n)
+        memset(scentLionPrevBuf.contents(), 0, n)
+        memset(scentWaterBuf.contents(), 0, n)
+        memset(scentWaterPrevBuf.contents(), 0, n)
+    }
+
     public func tick(tickNumber: UInt32, isDay: Bool) {
         guard let cmdBuf = queue.makeCommandBuffer() else { return }
 
-        // 1. Scent diffusion with Serengeti wind
-        let wind = MetalEngine.serengetiWind(tick: tickNumber)
+        // 1. Scent diffusion with wind
+        // Reset scent when wind toggles to clear accumulated bias
+        if windActive != lastWindActive {
+            resetScent()
+            lastWindActive = windActive
+        }
+        let wind: UInt32
+        if !windActive {
+            wind = 6  // 6 = no wind (scent kernel treats dir >= 6 as uniform diffusion)
+        } else if let override = windOverride {
+            wind = override
+        } else {
+            wind = MetalEngine.serengetiWind(tick: tickNumber)
+        }
         encodeScent(cmdBuf: cmdBuf, scent: scentZebraBuf, prev: scentZebraPrevBuf,
                     sourceType: 2, emitStr: 1.0, windDir: wind)
         encodeScent(cmdBuf: cmdBuf, scent: scentGrassBuf, prev: scentGrassPrevBuf,
@@ -290,8 +326,20 @@ public final class MetalEngine {
         var tick = tickNumber
         var day: UInt32 = isDay ? 1 : 0
 
-        // 2. Four color-group tick phases
-        for phase in 0..<HexGrid.colorCount {
+        // 2. Seven color-group tick phases — SHUFFLED every tick
+        // Without shuffling, Color 0→1 steps process twice per tick,
+        // Color 6→0 steps wait. Creates phantom "chromatic advection" —
+        // information flows faster along the color gradient.
+        // Fix by Gemini Deep Think, 2026-04-15
+        var colorOrder = Array(0..<HexGrid.colorCount)
+        // Fisher-Yates shuffle using tick as seed
+        var shuffleSeed = tickNumber &* 2654435761
+        for i in stride(from: colorOrder.count - 1, through: 1, by: -1) {
+            shuffleSeed = shuffleSeed &* 1103515245 &+ 12345
+            let j = Int(shuffleSeed >> 16) % (i + 1)
+            colorOrder.swapAt(i, j)
+        }
+        for phase in colorOrder {
             guard let enc = cmdBuf.makeComputeCommandEncoder() else { continue }
             enc.setComputePipelineState(tickPipeline)
             enc.setBuffer(entityBuf, offset: 0, index: 0)
