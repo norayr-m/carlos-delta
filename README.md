@@ -110,3 +110,7 @@ All data stored in Morton Z-curve order. Spatial neighbors are close in memory. 
 ## AI Co-Authorship
 
 Built collaboratively with [Claude](https://claude.ai) (Anthropic) and [Gemini Deep Think](https://deepmind.google/models/gemini/deep-think/) (Google). Bugs found by [Qwen3 Coder Next](https://huggingface.co/Qwen/Qwen3-Coder-Next) (Alibaba, local via LM Studio). The math is human. The code was built together. All are credited.
+
+## License
+
+Apache 2.0 (see LICENSE and NOTICE). Earlier versions were MIT; that grant stands for them.

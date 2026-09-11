@@ -1,0 +1,11 @@
+carlos-delta
+Copyright 2026 Norayr Matevosyan
+
+Licensed under the Apache License, Version 2.0 (see LICENSE) from 2026-09-10.
+Earlier versions of this repository were released under the MIT License by the
+same author; that grant stands for those versions and its text is preserved in
+LICENSE.MIT-prior.
+
+The delta-compression architecture builds on
+  carlosmateo10/delta-compression-demo — Copyright Carlos Mateo Munoz, MIT License —
+credited in the README; no code from that repository is vendored here.
